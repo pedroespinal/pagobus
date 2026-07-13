@@ -5,6 +5,9 @@ import '../l10n/app_localizations.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
 import '../services/database_service.dart';
+import '../services/recurring_payment_service.dart';
+import '../services/settings_service.dart';
+import '../utils/currency_formatter.dart';
 
 class DriverDetailScreen extends StatefulWidget {
   final Driver driver;
@@ -35,11 +38,44 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
     _load();
   }
 
+  Future<void> _generatePayments() async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.generatePaymentsConfirmTitle),
+        content: Text(l10n.generatePaymentsConfirm(widget.driver.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    final created = await RecurringPaymentService.generateForMonth(
+      widget.driver,
+      DateTime.now(),
+    );
+    await _load();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(created > 0
+          ? l10n.generatePaymentsDone(created)
+          : l10n.generatePaymentsNone),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
-    final currency = NumberFormat.simpleCurrency(locale: locale);
+    final currencyCode = SettingsService.instance.currencyCode;
     final dateFormat = DateFormat.yMMMd(locale);
 
     final totalPaid = _payments
@@ -66,7 +102,7 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                         Text(l10n.totalPaid,
                             style: Theme.of(context).textTheme.labelLarge),
                         Text(
-                          currency.format(totalPaid),
+                          formatAmount(totalPaid, currencyCode),
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -82,7 +118,7 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                         Text(l10n.totalPending,
                             style: Theme.of(context).textTheme.labelLarge),
                         Text(
-                          currency.format(totalPending),
+                          formatAmount(totalPending, currencyCode),
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -110,7 +146,7 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                         ),
                         title: Text(dateFormat.format(payment.date)),
                         subtitle: Text(
-                          currency.format(payment.amount) +
+                          formatAmount(payment.amount, currencyCode) +
                               (payment.isExtra ? ' · ${l10n.holidayLabel}' : ''),
                         ),
                         trailing: IconButton(
@@ -124,6 +160,11 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                   ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _generatePayments,
+        icon: const Icon(Icons.auto_awesome),
+        label: Text(l10n.generatePayments),
       ),
     );
   }

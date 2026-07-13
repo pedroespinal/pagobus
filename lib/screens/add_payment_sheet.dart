@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/child.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
 import '../services/database_service.dart';
@@ -16,6 +17,7 @@ class AddPaymentSheet extends StatefulWidget {
   final DateTime date;
   final bool isExcludedDay;
   final List<Driver> drivers;
+  final List<Child> children;
   final Payment? existing;
 
   const AddPaymentSheet({
@@ -23,6 +25,7 @@ class AddPaymentSheet extends StatefulWidget {
     required this.date,
     required this.isExcludedDay,
     required this.drivers,
+    this.children = const [],
     this.existing,
   });
 
@@ -35,6 +38,7 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
   late final TextEditingController _amountController;
   late final TextEditingController _noteController;
   Driver? _selectedDriver;
+  Child? _selectedChild;
   bool _paid = false;
 
   @override
@@ -45,6 +49,10 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
       _selectedDriver = widget.drivers
           .where((d) => d.id == existing.driverId)
           .cast<Driver?>()
+          .firstOrNull;
+      _selectedChild = widget.children
+          .where((c) => c.id == existing.childId)
+          .cast<Child?>()
           .firstOrNull;
       _amountController =
           TextEditingController(text: existing.amount.toStringAsFixed(2));
@@ -86,6 +94,7 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
       paid: _paid,
       isExtra: widget.isExcludedDay || (widget.existing?.isExtra ?? false),
       note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+      childId: _selectedChild?.id,
     );
     await DatabaseService.instance.upsertPayment(payment);
     if (mounted) Navigator.of(context).pop(true);
@@ -133,6 +142,23 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
               onChanged: _onDriverChanged,
               validator: (v) => v == null ? l10n.requiredField : null,
             ),
+            if (widget.children.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<Child?>(
+                initialValue: _selectedChild,
+                decoration: InputDecoration(labelText: l10n.childLabel),
+                items: [
+                  DropdownMenuItem<Child?>(
+                    value: null,
+                    child: Text(l10n.noChildSelected),
+                  ),
+                  ...widget.children.map(
+                    (c) => DropdownMenuItem<Child?>(value: c, child: Text(c.name)),
+                  ),
+                ],
+                onChanged: (child) => setState(() => _selectedChild = child),
+              ),
+            ],
             const SizedBox(height: 12),
             TextFormField(
               controller: _amountController,

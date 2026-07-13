@@ -80,5 +80,60 @@
   "upToDate": "Ya tienes la ultima version",
 
   "requiredField": "Este campo es obligatorio",
-  "invalidAmount": "Ingresa un monto valido"
+  "invalidAmount": "Ingresa un monto valido",
+
+  "navReports": "Reportes",
+  "childLabel": "Nino (opcional)",
+  "noChildSelected": "Ninguno",
+  "childrenLabel": "Ninos",
+  "addChild": "Agregar nino",
+  "editChild": "Editar nino",
+  "confirmDeleteChild": "¿Eliminar este nino? Los pagos asociados quedaran sin nino asignado.",
+
+  "generatePayments": "Generar pagos del mes",
+  "generatePaymentsConfirmTitle": "Generar pagos del mes",
+  "generatePaymentsConfirm": "Se generaran los pagos de este mes para {name} segun su frecuencia (diario/semanal/mensual), sin duplicar los dias ya registrados ni los fines de semana/feriados.",
+  "@generatePaymentsConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "generatePaymentsDone": "Se generaron {count} pagos nuevos",
+  "@generatePaymentsDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "generatePaymentsNone": "No hay pagos nuevos que generar este mes",
+
+  "currencyLabel": "Moneda",
+
+  "securityLabel": "Seguridad",
+  "pinLockLabel": "Bloqueo con PIN",
+  "biometricLabel": "Desbloqueo con huella o rostro",
+  "setPinTitle": "Crear PIN",
+  "pinLabel": "PIN",
+  "confirmPinLabel": "Confirmar PIN",
+  "pinMismatch": "Los PIN no coinciden",
+  "pinTooShort": "El PIN debe tener al menos 4 digitos",
+  "enterPinTitle": "Ingresa tu PIN actual",
+  "wrongPin": "PIN incorrecto",
+  "unlock": "Desbloquear",
+  "unlockPagoBus": "Desbloquea PagoBus",
+  "useBiometric": "Usar huella o rostro",
+
+  "reminderLabel": "Recordatorio diario",
+  "reminderTimeLabel": "Hora del recordatorio",
+  "reminderNotificationTitle": "PagoBus",
+  "reminderNotificationBody": "Recuerda revisar los pagos del transporte escolar de hoy",
+
+  "backupLabel": "Respaldo de datos",
+  "exportData": "Exportar datos",
+  "importData": "Importar datos",
+  "exportSuccess": "Datos exportados correctamente",
+  "importSuccess": "Datos importados correctamente",
+  "importConfirmTitle": "Importar datos",
+  "importConfirmBody": "Esto reemplazara todos los datos actuales (choferes, ninos y pagos) con los del archivo seleccionado. Esta accion no se puede deshacer. ¿Continuar?",
+  "importError": "No se pudo importar el archivo seleccionado",
+
+  "reportsTitle": "Reportes",
+  "totalByDriver": "Total por chofer",
+  "monthlyTrend": "Tendencia mensual",
+  "noDataForReports": "No hay datos para mostrar todavia"
 }

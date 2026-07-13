@@ -1,0 +1,4 @@
+storePassword=your-store-password
+keyPassword=your-key-password
+keyAlias=pagobus
+storeFile=/absolute/path/to/pagobus-release.jks

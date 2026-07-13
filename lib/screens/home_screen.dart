@@ -5,6 +5,7 @@ import '../services/update_service.dart';
 import '../widgets/update_dialog.dart';
 import 'calendar_screen.dart';
 import 'driver_list_screen.dart';
+import 'reports_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -36,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final screens = [
       const CalendarScreen(),
       const DriverListScreen(),
+      const ReportsScreen(),
       const SettingsScreen(),
     ];
 
@@ -57,6 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.directions_bus_outlined),
             selectedIcon: const Icon(Icons.directions_bus),
             label: l10n.navDrivers,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.bar_chart_outlined),
+            selectedIcon: const Icon(Icons.bar_chart),
+            label: l10n.navReports,
           ),
           NavigationDestination(
             icon: const Icon(Icons.settings_outlined),

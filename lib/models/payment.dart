@@ -6,6 +6,7 @@ class Payment {
   final bool paid;
   final bool isExtra;
   final String? note;
+  final String? childId;
 
   const Payment({
     required this.id,
@@ -15,6 +16,7 @@ class Payment {
     required this.paid,
     this.isExtra = false,
     this.note,
+    this.childId,
   });
 
   Payment copyWith({
@@ -22,6 +24,8 @@ class Payment {
     bool? paid,
     bool? isExtra,
     String? note,
+    String? childId,
+    bool clearChild = false,
   }) {
     return Payment(
       id: id,
@@ -31,6 +35,7 @@ class Payment {
       paid: paid ?? this.paid,
       isExtra: isExtra ?? this.isExtra,
       note: note ?? this.note,
+      childId: clearChild ? null : (childId ?? this.childId),
     );
   }
 
@@ -49,6 +54,7 @@ class Payment {
       'paid': paid ? 1 : 0,
       'isExtra': isExtra ? 1 : 0,
       'note': note,
+      'childId': childId,
     };
   }
 
@@ -61,6 +67,7 @@ class Payment {
       paid: (map['paid'] as int) == 1,
       isExtra: (map['isExtra'] as int) == 1,
       note: map['note'] as String?,
+      childId: map['childId'] as String?,
     );
   }
 }

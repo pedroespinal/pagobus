@@ -80,5 +80,60 @@
   "upToDate": "You already have the latest version",
 
   "requiredField": "This field is required",
-  "invalidAmount": "Enter a valid amount"
+  "invalidAmount": "Enter a valid amount",
+
+  "navReports": "Reports",
+  "childLabel": "Child (optional)",
+  "noChildSelected": "None",
+  "childrenLabel": "Children",
+  "addChild": "Add child",
+  "editChild": "Edit child",
+  "confirmDeleteChild": "Delete this child? Associated payments will be left unassigned.",
+
+  "generatePayments": "Generate this month's payments",
+  "generatePaymentsConfirmTitle": "Generate this month's payments",
+  "generatePaymentsConfirm": "This month's payments will be generated for {name} based on their frequency (daily/weekly/monthly), without duplicating already-recorded days or weekends/holidays.",
+  "@generatePaymentsConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "generatePaymentsDone": "{count} new payments generated",
+  "@generatePaymentsDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "generatePaymentsNone": "No new payments to generate this month",
+
+  "currencyLabel": "Currency",
+
+  "securityLabel": "Security",
+  "pinLockLabel": "PIN lock",
+  "biometricLabel": "Fingerprint/face unlock",
+  "setPinTitle": "Create PIN",
+  "pinLabel": "PIN",
+  "confirmPinLabel": "Confirm PIN",
+  "pinMismatch": "PINs don't match",
+  "pinTooShort": "PIN must be at least 4 digits",
+  "enterPinTitle": "Enter your current PIN",
+  "wrongPin": "Incorrect PIN",
+  "unlock": "Unlock",
+  "unlockPagoBus": "Unlock PagoBus",
+  "useBiometric": "Use fingerprint/face",
+
+  "reminderLabel": "Daily reminder",
+  "reminderTimeLabel": "Reminder time",
+  "reminderNotificationTitle": "PagoBus",
+  "reminderNotificationBody": "Remember to check today's school transport payments",
+
+  "backupLabel": "Data backup",
+  "exportData": "Export data",
+  "importData": "Import data",
+  "exportSuccess": "Data exported successfully",
+  "importSuccess": "Data imported successfully",
+  "importConfirmTitle": "Import data",
+  "importConfirmBody": "This will replace all current data (drivers, children, and payments) with the selected file's data. This can't be undone. Continue?",
+  "importError": "Couldn't import the selected file",
+
+  "reportsTitle": "Reports",
+  "totalByDriver": "Total by driver",
+  "monthlyTrend": "Monthly trend",
+  "noDataForReports": "No data to show yet"
 }

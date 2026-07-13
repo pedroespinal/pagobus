@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/child.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
 import '../services/database_service.dart';
 import '../services/holiday_service.dart';
+import '../services/settings_service.dart';
+import '../utils/currency_formatter.dart';
 import 'add_payment_sheet.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -21,12 +23,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _selectedDay = DateTime.now();
   Map<String, List<Payment>> _paymentsByDay = {};
   List<Driver> _drivers = [];
+  List<Child> _children = [];
   bool _selectedDayExcluded = false;
 
   @override
   void initState() {
     super.initState();
     _loadDrivers();
+    _loadChildren();
     _loadMonth(_focusedDay);
     _refreshExclusion(_selectedDay);
   }
@@ -34,6 +38,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _loadDrivers() async {
     final drivers = await DatabaseService.instance.getDrivers();
     if (mounted) setState(() => _drivers = drivers);
+  }
+
+  Future<void> _loadChildren() async {
+    final children = await DatabaseService.instance.getChildren();
+    if (mounted) setState(() => _children = children);
   }
 
   Future<void> _loadMonth(DateTime month) async {
@@ -65,6 +74,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         date: _selectedDay,
         isExcludedDay: _selectedDayExcluded,
         drivers: _drivers,
+        children: _children,
         existing: existing,
       ),
     );
@@ -108,11 +118,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return match.isEmpty ? '' : match.first.name;
   }
 
+  String? _childName(String? childId) {
+    if (childId == null) return null;
+    final match = _children.where((c) => c.id == childId);
+    return match.isEmpty ? null : match.first.name;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context).languageCode;
+    final currencyCode = SettingsService.instance.currencyCode;
     final events = _eventsForDay(_selectedDay);
 
     return Scaffold(
@@ -178,10 +195,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           payment.paid ? Icons.check_circle : Icons.pending,
                           color: payment.paid ? Colors.green : Colors.orange,
                         ),
-                        title: Text(_driverName(payment.driverId)),
+                        title: Text(
+                          _childName(payment.childId) != null
+                              ? '${_driverName(payment.driverId)} · ${_childName(payment.childId)}'
+                              : _driverName(payment.driverId),
+                        ),
                         subtitle: Text(
-                          NumberFormat.simpleCurrency(locale: locale)
-                              .format(payment.amount) +
+                          formatAmount(payment.amount, currencyCode) +
                               (payment.isExtra ? ' · ${l10n.holidayLabel}' : ''),
                         ),
                         onTap: () => _openAddPayment(existing: payment),
