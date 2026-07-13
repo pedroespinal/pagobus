@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../l10n/app_localizations.dart';
+import '../services/app_origin.dart';
 import '../services/holiday_service.dart';
 import '../services/settings_service.dart';
 import '../services/update_service.dart';
@@ -192,6 +193,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: Text(l10n.versionLabel),
                 subtitle: Text('PagoBus $_version'),
                 leading: const Icon(Icons.info_outline),
+              ),
+              ListTile(
+                title: Text(l10n.appCreatedLabel),
+                subtitle: Text(
+                  '${DateFormat.yMMMMd(locale).add_Hm().format(AppOrigin.createdAtUtc)} UTC',
+                ),
+                leading: const Icon(Icons.verified_outlined),
               ),
               const SizedBox(height: 24),
               Padding(
