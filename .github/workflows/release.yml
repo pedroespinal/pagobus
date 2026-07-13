@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version in pubspec.yaml
+        id: bump
+        run: |
+          CURRENT=$(grep '^version:' pubspec.yaml | sed 's/version: *//')
+          VERSION_NAME=$(echo "$CURRENT" | cut -d'+' -f1)
+          BUILD_NUMBER=$(echo "$CURRENT" | cut -d'+' -f2)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NAME"
+          NEW_PATCH=$((PATCH + 1))
+          NEW_BUILD=$((BUILD_NUMBER + 1))
+          NEW_VERSION_NAME="$MAJOR.$MINOR.$NEW_PATCH"
+          NEW_VERSION="$NEW_VERSION_NAME+$NEW_BUILD"
+          sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          echo "version_name=$NEW_VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "chore: release PagoBus v${{ steps.bump.outputs.version_name }} [skip ci]"
+          git push
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.7"
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Rename APK
+        run: |
+          mkdir -p release
+          cp build/app/outputs/flutter-apk/app-release.apk "release/PagoBus-v${{ steps.bump.outputs.version_name }}.apk"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.bump.outputs.version_name }}
+          name: PagoBus v${{ steps.bump.outputs.version_name }}
+          files: release/PagoBus-v${{ steps.bump.outputs.version_name }}.apk
+          generate_release_notes: true
