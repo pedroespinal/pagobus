@@ -10,7 +10,7 @@ class DatabaseService {
   DatabaseService._internal();
   static final DatabaseService instance = DatabaseService._internal();
 
-  static const int schemaVersion = 5;
+  static const int schemaVersion = 6;
 
   Database? _db;
 
@@ -113,6 +113,17 @@ class DatabaseService {
         if (oldVersion < 5) {
           await db.execute(
             'ALTER TABLE drivers ADD COLUMN assignedChildIds TEXT',
+          );
+        }
+        if (oldVersion < 6) {
+          // Earlier versions auto-generated "received" attendance for the
+          // whole month, including days that hadn't happened yet. Remove
+          // those stray future entries; untouched ones (no reason) are the
+          // only ones we can be sure were auto-generated rather than a
+          // deliberate user edit.
+          await db.execute(
+            'DELETE FROM service_records WHERE date > ? AND received = 1 AND reason IS NULL',
+            [ServiceRecord.dateKey(DateTime.now())],
           );
         }
       },

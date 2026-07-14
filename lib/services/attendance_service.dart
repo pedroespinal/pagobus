@@ -8,10 +8,13 @@ import 'holiday_service.dart';
 const _uuid = Uuid();
 
 /// Ensures a [ServiceRecord] (defaulting to "received") exists for every one
-/// of the driver's configured service weekdays in the given month, skipping
-/// weekends/holidays and days that already have a record. This is what lets
-/// the user just flip a switch to "not received" + add a reason, instead of
-/// having to create each day's attendance entry by hand.
+/// of the driver's configured service weekdays up to today in the given
+/// month, skipping weekends/holidays and days that already have a record.
+/// Future days are left untouched — service can't be "received" before it
+/// happens — so a payment deleted for an upcoming date won't reappear as a
+/// stray attendance entry. This is what lets the user just flip a switch to
+/// "not received" + add a reason, instead of having to create each day's
+/// attendance entry by hand.
 class AttendanceService {
   static Future<int> ensureRecordsForMonth(
     Driver driver,
@@ -21,6 +24,17 @@ class AttendanceService {
     final holidays = HolidayService.instance;
     final year = monthAnchor.year;
     final month = monthAnchor.month;
+    final now = DateTime.now();
+    final monthStart = DateTime(year, month, 1);
+    final currentMonthStart = DateTime(now.year, now.month, 1);
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    final lastDay = monthStart.isAfter(currentMonthStart)
+        ? 0
+        : (monthStart.isAtSameMomentAs(currentMonthStart)
+              ? now.day
+              : daysInMonth);
+    if (lastDay == 0) return 0;
+
     final existing = await db.getServiceRecordsInRange(
       driver.id,
       DateTime(year, month, 1),
@@ -29,10 +43,9 @@ class AttendanceService {
     final existingKeys = existing
         .map((r) => ServiceRecord.dateKey(r.date))
         .toSet();
-    final daysInMonth = DateTime(year, month + 1, 0).day;
     var created = 0;
 
-    for (var d = 1; d <= daysInMonth; d++) {
+    for (var d = 1; d <= lastDay; d++) {
       final date = DateTime(year, month, d);
       if (!driver.serviceWeekdays.contains(date.weekday)) continue;
       if (existingKeys.contains(ServiceRecord.dateKey(date))) continue;
