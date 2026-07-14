@@ -22,6 +22,14 @@ const Set<int> defaultServiceWeekdays = {
   DateTime.friday,
 };
 
+/// Standard number of days used to split a monthly `defaultAmount` into a
+/// single day's charge (e.g. 6000/month ÷ 20 = 300/day). This is a fixed,
+/// user-chosen convention rather than the actual number of weekdays in a
+/// given calendar month (which varies 20-23 and would make the daily rate
+/// drift month to month, confusing users who already agreed on a flat
+/// daily rate with the driver).
+const int defaultStandardDaysPerMonth = 20;
+
 class Driver {
   final String id;
   final String name;
@@ -30,6 +38,7 @@ class Driver {
   final double defaultAmount;
   final PaymentFrequency defaultFrequency;
   final Set<int> serviceWeekdays;
+  final int standardDaysPerMonth;
 
   const Driver({
     required this.id,
@@ -39,6 +48,7 @@ class Driver {
     required this.defaultAmount,
     required this.defaultFrequency,
     this.serviceWeekdays = defaultServiceWeekdays,
+    this.standardDaysPerMonth = defaultStandardDaysPerMonth,
   });
 
   Driver copyWith({
@@ -48,6 +58,7 @@ class Driver {
     double? defaultAmount,
     PaymentFrequency? defaultFrequency,
     Set<int>? serviceWeekdays,
+    int? standardDaysPerMonth,
   }) {
     return Driver(
       id: id,
@@ -57,6 +68,7 @@ class Driver {
       defaultAmount: defaultAmount ?? this.defaultAmount,
       defaultFrequency: defaultFrequency ?? this.defaultFrequency,
       serviceWeekdays: serviceWeekdays ?? this.serviceWeekdays,
+      standardDaysPerMonth: standardDaysPerMonth ?? this.standardDaysPerMonth,
     );
   }
 
@@ -69,6 +81,7 @@ class Driver {
       'defaultAmount': defaultAmount,
       'defaultFrequency': defaultFrequency.storageValue,
       'serviceWeekdays': (serviceWeekdays.toList()..sort()).join(','),
+      'standardDaysPerMonth': standardDaysPerMonth,
     };
   }
 
@@ -87,6 +100,9 @@ class Driver {
         map['defaultFrequency'] as String,
       ),
       serviceWeekdays: weekdays,
+      standardDaysPerMonth:
+          (map['standardDaysPerMonth'] as num?)?.toInt() ??
+          defaultStandardDaysPerMonth,
     );
   }
 }

@@ -40,6 +40,8 @@
   "phoneLabel": "Phone (optional)",
   "defaultAmountLabel": "Default amount",
   "defaultFrequencyLabel": "Default frequency",
+  "standardDaysPerMonthLabel": "Days per month (to calculate the daily amount)",
+  "standardDaysPerMonthHint": "The monthly amount is divided by this number to calculate a single day's charge. E.g: 6,000 over 20 days = 300 per day.",
   "noDrivers": "You haven't added any drivers or companies yet",
   "totalPaid": "Total paid",
   "totalPending": "Total pending",

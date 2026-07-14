@@ -89,33 +89,19 @@ class RecurringPaymentService {
     return created;
   }
 
-  /// How many of the driver's service weekdays fall in the given month,
-  /// excluding weekends/holidays already covered by [HolidayService].
-  static Future<int> countServiceDaysInMonth(
-    Driver driver,
-    DateTime referenceDate,
-  ) async {
-    final holidays = HolidayService.instance;
-    final year = referenceDate.year;
-    final month = referenceDate.month;
-    final daysInMonth = DateTime(year, month + 1, 0).day;
-    var count = 0;
-    for (var d = 1; d <= daysInMonth; d++) {
-      final date = DateTime(year, month, d);
-      if (!driver.serviceWeekdays.contains(date.weekday)) continue;
-      if (await holidays.isExcludedDay(date)) continue;
-      count++;
-    }
-    return count;
-  }
-
   /// The amount a single calendar day should be pre-filled with for this
   /// driver. `defaultAmount` is a *period* total (the whole week or month),
   /// not a per-day figure, for weekly/monthly drivers — so a single day's
   /// entry must divide it down, otherwise adding one day would wrongly
   /// charge the full period amount (e.g. the whole month's 6000 instead of
-  /// that day's ~300 share of it).
-  static Future<double> dailyRate(Driver driver, DateTime referenceDate) async {
+  /// that day's 300 share of it).
+  ///
+  /// The monthly divisor is the driver's fixed `standardDaysPerMonth` (a
+  /// convention the user picks, e.g. 20), not the actual varying weekday
+  /// count of a given calendar month — otherwise the same driver's daily
+  /// rate would drift from month to month, which doesn't match how a flat
+  /// daily rate is normally agreed with a driver.
+  static double dailyRate(Driver driver, DateTime referenceDate) {
     switch (driver.defaultFrequency) {
       case PaymentFrequency.daily:
         return driver.defaultAmount;
@@ -125,8 +111,10 @@ class RecurringPaymentService {
             : driver.serviceWeekdays.length;
         return driver.defaultAmount / days;
       case PaymentFrequency.monthly:
-        final count = await countServiceDaysInMonth(driver, referenceDate);
-        return count == 0 ? driver.defaultAmount : driver.defaultAmount / count;
+        final days = driver.standardDaysPerMonth <= 0
+            ? defaultStandardDaysPerMonth
+            : driver.standardDaysPerMonth;
+        return driver.defaultAmount / days;
     }
   }
 }

@@ -10,7 +10,7 @@ class DatabaseService {
   DatabaseService._internal();
   static final DatabaseService instance = DatabaseService._internal();
 
-  static const int schemaVersion = 3;
+  static const int schemaVersion = 4;
 
   Database? _db;
 
@@ -34,7 +34,8 @@ class DatabaseService {
             phone TEXT,
             defaultAmount REAL NOT NULL,
             defaultFrequency TEXT NOT NULL,
-            serviceWeekdays TEXT
+            serviceWeekdays TEXT,
+            standardDaysPerMonth INTEGER
           )
         ''');
         await db.execute('''
@@ -101,6 +102,11 @@ class DatabaseService {
           ''');
           await db.execute(
             'CREATE INDEX IF NOT EXISTS idx_service_records_driver_date ON service_records (driverId, date)',
+          );
+        }
+        if (oldVersion < 4) {
+          await db.execute(
+            'ALTER TABLE drivers ADD COLUMN standardDaysPerMonth INTEGER',
           );
         }
       },

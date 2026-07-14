@@ -40,6 +40,8 @@
   "phoneLabel": "Telefono (opcional)",
   "defaultAmountLabel": "Monto por defecto",
   "defaultFrequencyLabel": "Frecuencia por defecto",
+  "standardDaysPerMonthLabel": "Dias por mes (para calcular el monto diario)",
+  "standardDaysPerMonthHint": "El monto mensual se divide entre este numero para calcular el monto de un solo dia. Ej: 6,000 entre 20 dias = 300 por dia.",
   "noDrivers": "Aun no has agregado choferes o empresas",
   "totalPaid": "Total pagado",
   "totalPending": "Total pendiente",

@@ -23,6 +23,7 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
   late final TextEditingController _companyController;
   late final TextEditingController _phoneController;
   late final TextEditingController _amountController;
+  late final TextEditingController _standardDaysController;
   late PaymentFrequency _frequency;
   late Set<int> _serviceWeekdays;
   bool _showWeekdayError = false;
@@ -41,6 +42,10 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
     _serviceWeekdays = Set<int>.from(
       existing?.serviceWeekdays ?? defaultServiceWeekdays,
     );
+    _standardDaysController = TextEditingController(
+      text: (existing?.standardDaysPerMonth ?? defaultStandardDaysPerMonth)
+          .toString(),
+    );
   }
 
   @override
@@ -49,6 +54,7 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
     _companyController.dispose();
     _phoneController.dispose();
     _amountController.dispose();
+    _standardDaysController.dispose();
     super.dispose();
   }
 
@@ -70,6 +76,9 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
       defaultAmount: double.parse(_amountController.text.replaceAll(',', '.')),
       defaultFrequency: _frequency,
       serviceWeekdays: _serviceWeekdays,
+      standardDaysPerMonth:
+          int.tryParse(_standardDaysController.text) ??
+          defaultStandardDaysPerMonth,
     );
     await DatabaseService.instance.upsertDriver(driver);
     if (mounted) Navigator.of(context).pop(true);
@@ -153,6 +162,26 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
                 ],
                 onChanged: (v) => setState(() => _frequency = v ?? _frequency),
               ),
+              if (_frequency == PaymentFrequency.monthly) ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _standardDaysController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: l10n.standardDaysPerMonthLabel,
+                    helperText: l10n.standardDaysPerMonthHint,
+                    helperMaxLines: 3,
+                  ),
+                  validator: (v) {
+                    if (_frequency != PaymentFrequency.monthly) return null;
+                    final parsed = int.tryParse(v ?? '');
+                    if (parsed == null || parsed <= 0) {
+                      return l10n.invalidAmount;
+                    }
+                    return null;
+                  },
+                ),
+              ],
               const SizedBox(height: 16),
               Text(
                 l10n.serviceWeekdaysLabel,
