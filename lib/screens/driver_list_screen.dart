@@ -69,6 +69,9 @@ class _DriverListScreenState extends State<DriverListScreen> {
       body: _drivers.isEmpty
           ? Center(child: Text(l10n.noDrivers))
           : ListView.builder(
+              padding: EdgeInsets.only(
+                bottom: 96 + MediaQuery.of(context).padding.bottom,
+              ),
               itemCount: _drivers.length,
               itemBuilder: (context, index) {
                 final driver = _drivers[index];
@@ -81,7 +84,8 @@ class _DriverListScreenState extends State<DriverListScreen> {
                   onTap: () async {
                     await Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => DriverDetailScreen(driver: driver),
+                        builder: (context) =>
+                            DriverDetailScreen(driver: driver),
                       ),
                     );
                     _load();

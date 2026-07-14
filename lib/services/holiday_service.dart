@@ -17,7 +17,7 @@ class HolidayService {
   /// (New Year, Labor Day, Christmas). Country-specific / movable holidays
   /// should be added by the user via settings.
   static const List<(int month, int day, String labelEs, String labelEn)>
-      _fixedHolidays = [
+  _fixedHolidays = [
     (1, 1, 'Año Nuevo', "New Year's Day"),
     (5, 1, 'Dia del Trabajo', 'Labor Day'),
     (12, 25, 'Navidad', 'Christmas'),
@@ -63,7 +63,9 @@ class HolidayService {
   }
 
   Future<bool> isCustomHoliday(DateTime date) async {
-    final raw = _customCache ?? await (() async {
+    final raw =
+        _customCache ??
+        await (() async {
           final prefs = await SharedPreferences.getInstance();
           return prefs.getStringList(_prefsKey) ?? [];
         })();

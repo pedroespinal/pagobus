@@ -48,7 +48,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _loadMonth(DateTime month) async {
     final start = DateTime(month.year, month.month - 1, 1);
     final end = DateTime(month.year, month.month + 2, 0);
-    final payments = await DatabaseService.instance.getPaymentsInRange(start, end);
+    final payments = await DatabaseService.instance.getPaymentsInRange(
+      start,
+      end,
+    );
     final grouped = <String, List<Payment>>{};
     for (final p in payments) {
       grouped.putIfAbsent(Payment.dateKey(p.date), () => []).add(p);
@@ -84,7 +87,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _togglePaid(Payment payment) async {
-    await DatabaseService.instance.upsertPayment(payment.copyWith(paid: !payment.paid));
+    await DatabaseService.instance.upsertPayment(
+      payment.copyWith(paid: !payment.paid),
+    );
     _loadMonth(_focusedDay);
   }
 
@@ -187,6 +192,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: events.isEmpty
                 ? Center(child: Text(l10n.noPaymentsForDay))
                 : ListView.builder(
+                    padding: EdgeInsets.only(
+                      bottom: 96 + MediaQuery.of(context).padding.bottom,
+                    ),
                     itemCount: events.length,
                     itemBuilder: (context, index) {
                       final payment = events[index];
@@ -202,16 +210,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                         subtitle: Text(
                           formatAmount(payment.amount, currencyCode) +
-                              (payment.isExtra ? ' · ${l10n.holidayLabel}' : ''),
+                              (payment.isExtra
+                                  ? ' · ${l10n.holidayLabel}'
+                                  : ''),
                         ),
                         onTap: () => _openAddPayment(existing: payment),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(payment.paid
-                                  ? Icons.undo
-                                  : Icons.check),
+                              icon: Icon(
+                                payment.paid ? Icons.undo : Icons.check,
+                              ),
                               tooltip: payment.paid
                                   ? l10n.markAsUnpaid
                                   : l10n.markAsPaid,
@@ -232,7 +242,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openAddPayment(),
         icon: const Icon(Icons.add),
-        label: Text(_selectedDayExcluded ? l10n.addExtraService : l10n.addPayment),
+        label: Text(
+          _selectedDayExcluded ? l10n.addExtraService : l10n.addPayment,
+        ),
       ),
     );
   }

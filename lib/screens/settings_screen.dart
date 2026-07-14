@@ -60,7 +60,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSecurity() async {
     final hasPin = await AuthService.instance.hasPin();
     final biometricEnabled = await AuthService.instance.isBiometricEnabled();
-    final biometricAvailable = await AuthService.instance.isBiometricAvailable();
+    final biometricAvailable = await AuthService.instance
+        .isBiometricAvailable();
     if (mounted) {
       setState(() {
         _pinEnabled = hasPin;
@@ -229,8 +230,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await BackupService.exportAndShare();
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.exportSuccess)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.exportSuccess)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -263,14 +265,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final imported = await BackupService.pickAndImport();
       if (!mounted) return;
       if (imported) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.importSuccess)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.importSuccess)));
         _loadChildren();
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.importError)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.importError)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -282,8 +286,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final info = await UpdateService.instance.checkForUpdate();
     if (!mounted) return;
     if (info == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.upToDate)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.upToDate)));
     } else {
       await showUpdateDialog(context, info);
     }
@@ -309,8 +314,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: Text(l10n.languageLabel),
                       trailing: SegmentedButton<String>(
                         segments: [
-                          ButtonSegment(value: 'es', label: Text(l10n.languageSpanish)),
-                          ButtonSegment(value: 'en', label: Text(l10n.languageEnglish)),
+                          ButtonSegment(
+                            value: 'es',
+                            label: Text(l10n.languageSpanish),
+                          ),
+                          ButtonSegment(
+                            value: 'en',
+                            label: Text(l10n.languageEnglish),
+                          ),
                         ],
                         selected: {locale},
                         onSelectionChanged: (selection) {
@@ -370,10 +381,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       trailing: DropdownButton<String>(
                         value: _settings.currencyCode,
                         items: currencySymbols.keys
-                            .map((code) => DropdownMenuItem(
-                                  value: code,
-                                  child: Text('$code (${currencySymbols[code]})'),
-                                ))
+                            .map(
+                              (code) => DropdownMenuItem(
+                                value: code,
+                                child: Text('$code (${currencySymbols[code]})'),
+                              ),
+                            )
                             .toList(),
                         onChanged: (code) {
                           if (code != null) _settings.setCurrencyCode(code);
@@ -409,15 +422,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onPressed: _addChild,
                       ),
                     ),
-                    ..._children.map((child) => ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.face_outlined),
-                          title: Text(child.name),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () => _removeChild(child),
-                          ),
-                        )),
+                    ..._children.map(
+                      (child) => ListTile(
+                        dense: true,
+                        leading: const Icon(Icons.face_outlined),
+                        title: Text(child.name),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => _removeChild(child),
+                        ),
+                      ),
+                    ),
                     const Divider(),
                     ListTile(title: Text(l10n.securityLabel)),
                     SwitchListTile(
@@ -477,19 +492,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 24),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Text(
                         l10n.footerCredit,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.7),
-                            ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 16 + MediaQuery.of(context).padding.bottom,
+                    ),
                   ],
                 ),
                 if (_busy)

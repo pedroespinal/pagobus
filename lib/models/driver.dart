@@ -11,6 +11,17 @@ extension PaymentFrequencyStorage on PaymentFrequency {
   }
 }
 
+/// Weekdays (DateTime.monday..DateTime.sunday) on which a driver is expected
+/// to provide the school-transport service. Defaults to Monday-Friday, since
+/// that's the common case, but is fully configurable per driver.
+const Set<int> defaultServiceWeekdays = {
+  DateTime.monday,
+  DateTime.tuesday,
+  DateTime.wednesday,
+  DateTime.thursday,
+  DateTime.friday,
+};
+
 class Driver {
   final String id;
   final String name;
@@ -18,6 +29,7 @@ class Driver {
   final String? phone;
   final double defaultAmount;
   final PaymentFrequency defaultFrequency;
+  final Set<int> serviceWeekdays;
 
   const Driver({
     required this.id,
@@ -26,6 +38,7 @@ class Driver {
     this.phone,
     required this.defaultAmount,
     required this.defaultFrequency,
+    this.serviceWeekdays = defaultServiceWeekdays,
   });
 
   Driver copyWith({
@@ -34,6 +47,7 @@ class Driver {
     String? phone,
     double? defaultAmount,
     PaymentFrequency? defaultFrequency,
+    Set<int>? serviceWeekdays,
   }) {
     return Driver(
       id: id,
@@ -42,6 +56,7 @@ class Driver {
       phone: phone ?? this.phone,
       defaultAmount: defaultAmount ?? this.defaultAmount,
       defaultFrequency: defaultFrequency ?? this.defaultFrequency,
+      serviceWeekdays: serviceWeekdays ?? this.serviceWeekdays,
     );
   }
 
@@ -53,18 +68,25 @@ class Driver {
       'phone': phone,
       'defaultAmount': defaultAmount,
       'defaultFrequency': defaultFrequency.storageValue,
+      'serviceWeekdays': (serviceWeekdays.toList()..sort()).join(','),
     };
   }
 
   factory Driver.fromMap(Map<String, Object?> map) {
+    final weekdaysRaw = map['serviceWeekdays'] as String?;
+    final weekdays = (weekdaysRaw == null || weekdaysRaw.isEmpty)
+        ? defaultServiceWeekdays
+        : weekdaysRaw.split(',').map(int.parse).toSet();
     return Driver(
       id: map['id'] as String,
       name: map['name'] as String,
       company: map['company'] as String?,
       phone: map['phone'] as String?,
       defaultAmount: (map['defaultAmount'] as num).toDouble(),
-      defaultFrequency:
-          PaymentFrequencyStorage.fromStorage(map['defaultFrequency'] as String),
+      defaultFrequency: PaymentFrequencyStorage.fromStorage(
+        map['defaultFrequency'] as String,
+      ),
+      serviceWeekdays: weekdays,
     );
   }
 }

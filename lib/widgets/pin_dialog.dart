@@ -38,9 +38,8 @@ Future<String?> promptSetNewPin(BuildContext context) async {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               maxLength: 6,
               decoration: InputDecoration(labelText: l10n.confirmPinLabel),
-              validator: (v) => v != pinController.text
-                  ? l10n.pinMismatch
-                  : null,
+              validator: (v) =>
+                  v != pinController.text ? l10n.pinMismatch : null,
             ),
           ],
         ),

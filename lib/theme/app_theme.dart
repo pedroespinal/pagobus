@@ -4,9 +4,11 @@ import '../services/settings_service.dart';
 import 'app_palettes.dart';
 
 class AppTheme {
-  static ThemeData light(AppPalette palette) => _build(colorsForPalette(palette).light);
+  static ThemeData light(AppPalette palette) =>
+      _build(colorsForPalette(palette).light);
 
-  static ThemeData dark(AppPalette palette) => _build(colorsForPalette(palette).dark);
+  static ThemeData dark(AppPalette palette) =>
+      _build(colorsForPalette(palette).dark);
 
   static ThemeData _build(ColorScheme scheme) {
     return ThemeData(
@@ -18,6 +20,15 @@ class AppTheme {
         foregroundColor: scheme.onPrimary,
         elevation: 0,
         centerTitle: false,
+      ),
+      // Explicit colors so tab labels stay legible against the (also
+      // primary-colored) AppBar background — the Material default selected
+      // label color is colorScheme.primary, which would otherwise blend
+      // invisibly into a primary-colored AppBar.
+      tabBarTheme: TabBarThemeData(
+        labelColor: scheme.onPrimary,
+        unselectedLabelColor: scheme.onPrimary.withValues(alpha: 0.7),
+        indicatorColor: scheme.onPrimary,
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surfaceContainerHighest,
@@ -49,18 +60,17 @@ class AppTheme {
         ),
       ),
       textTheme: Typography.material2021(colorScheme: scheme).black.apply(
-            bodyColor: scheme.onSurface,
-            displayColor: scheme.onSurface,
-          ),
+        bodyColor: scheme.onSurface,
+        displayColor: scheme.onSurface,
+      ),
       cardTheme: CardThemeData(
         color: scheme.surfaceContainerHighest,
         surfaceTintColor: Colors.transparent,
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? scheme.secondary
-              : null,
+          (states) =>
+              states.contains(WidgetState.selected) ? scheme.secondary : null,
         ),
       ),
     );

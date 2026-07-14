@@ -19,20 +19,26 @@ class UpdateService {
   static const String repoName = 'pagobus';
 
   Uri get _latestReleaseUri => Uri.parse(
-      'https://api.github.com/repos/$repoOwner/$repoName/releases/latest');
+    'https://api.github.com/repos/$repoOwner/$repoName/releases/latest',
+  );
 
   /// Returns update info if a newer release is available on GitHub, or
   /// null if the app is already up to date (or the check failed, e.g. offline).
   Future<UpdateInfo?> checkForUpdate() async {
     try {
       final response = await http
-          .get(_latestReleaseUri, headers: {'Accept': 'application/vnd.github+json'})
+          .get(
+            _latestReleaseUri,
+            headers: {'Accept': 'application/vnd.github+json'},
+          )
           .timeout(const Duration(seconds: 6));
       if (response.statusCode != 200) return null;
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final tagName = (data['tag_name'] as String?) ?? '';
-      final remoteVersion = tagName.startsWith('v') ? tagName.substring(1) : tagName;
+      final remoteVersion = tagName.startsWith('v')
+          ? tagName.substring(1)
+          : tagName;
       if (remoteVersion.isEmpty) return null;
 
       final packageInfo = await PackageInfo.fromPlatform();
@@ -40,7 +46,8 @@ class UpdateService {
 
       if (!_isNewer(remoteVersion, currentVersion)) return null;
 
-      String downloadUrl = data['html_url'] as String? ??
+      String downloadUrl =
+          data['html_url'] as String? ??
           'https://github.com/$repoOwner/$repoName/releases/latest';
       final assets = data['assets'] as List<dynamic>?;
       if (assets != null && assets.isNotEmpty) {
@@ -60,12 +67,8 @@ class UpdateService {
   }
 
   bool _isNewer(String remote, String current) {
-    List<int> parse(String v) => v
-        .split('+')
-        .first
-        .split('.')
-        .map((p) => int.tryParse(p) ?? 0)
-        .toList();
+    List<int> parse(String v) =>
+        v.split('+').first.split('.').map((p) => int.tryParse(p) ?? 0).toList();
 
     final remoteParts = parse(remote);
     final currentParts = parse(current);

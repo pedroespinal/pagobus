@@ -135,5 +135,33 @@
   "reportsTitle": "Reports",
   "totalByDriver": "Total by driver",
   "monthlyTrend": "Monthly trend",
-  "noDataForReports": "No data to show yet"
+  "noDataForReports": "No data to show yet",
+
+  "serviceWeekdaysLabel": "Service days",
+  "serviceWeekdaysHint": "Days of the week the driver normally provides the service",
+  "weekdayMonShort": "M",
+  "weekdayTueShort": "T",
+  "weekdayWedShort": "W",
+  "weekdayThuShort": "T",
+  "weekdayFriShort": "F",
+  "weekdaySatShort": "S",
+  "weekdaySunShort": "S",
+  "selectAtLeastOneDay": "Select at least one day",
+
+  "paymentsTabLabel": "Payments",
+  "attendanceLabel": "Attendance",
+  "attendanceMonthSummary": "Received {received} of {total} days",
+  "@attendanceMonthSummary": {
+    "placeholders": {
+      "received": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "received": "Received",
+  "notReceived": "Not received",
+  "reasonLabel": "Reason",
+  "reasonHint": "Why wasn't the service received?",
+  "reasonRequired": "Enter a reason",
+  "noAttendanceRecords": "No service days this month",
+  "generateAttendance": "Generate this month's attendance"
 }

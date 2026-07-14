@@ -54,8 +54,9 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
           .where((c) => c.id == existing.childId)
           .cast<Child?>()
           .firstOrNull;
-      _amountController =
-          TextEditingController(text: existing.amount.toStringAsFixed(2));
+      _amountController = TextEditingController(
+        text: existing.amount.toStringAsFixed(2),
+      );
       _noteController = TextEditingController(text: existing.note ?? '');
       _paid = existing.paid;
     } else {
@@ -93,7 +94,9 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
       amount: amount,
       paid: _paid,
       isExtra: widget.isExcludedDay || (widget.existing?.isExtra ?? false),
-      note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+      note: _noteController.text.trim().isEmpty
+          ? null
+          : _noteController.text.trim(),
       childId: _selectedChild?.id,
     );
     await DatabaseService.instance.upsertPayment(payment);
@@ -103,102 +106,113 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final dateStr = DateFormat.yMMMMd(Localizations.localeOf(context).languageCode)
-        .format(widget.date);
+    final dateStr = DateFormat.yMMMMd(
+      Localizations.localeOf(context).languageCode,
+    ).format(widget.date);
 
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
         top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom +
+            20,
       ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.isExcludedDay ? l10n.addExtraService : l10n.addPayment,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 4),
-            Text(dateStr, style: Theme.of(context).textTheme.bodyMedium),
-            if (widget.isExcludedDay) ...[
-              const SizedBox(height: 8),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                l10n.extraServiceHint,
-                style: Theme.of(context).textTheme.bodySmall,
+                widget.isExcludedDay ? l10n.addExtraService : l10n.addPayment,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-            ],
-            const SizedBox(height: 16),
-            DropdownButtonFormField<Driver>(
-              initialValue: _selectedDriver,
-              decoration: InputDecoration(labelText: l10n.driverLabel),
-              items: widget.drivers
-                  .map((d) => DropdownMenuItem(value: d, child: Text(d.name)))
-                  .toList(),
-              onChanged: _onDriverChanged,
-              validator: (v) => v == null ? l10n.requiredField : null,
-            ),
-            if (widget.children.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              DropdownButtonFormField<Child?>(
-                initialValue: _selectedChild,
-                decoration: InputDecoration(labelText: l10n.childLabel),
-                items: [
-                  DropdownMenuItem<Child?>(
-                    value: null,
-                    child: Text(l10n.noChildSelected),
-                  ),
-                  ...widget.children.map(
-                    (c) => DropdownMenuItem<Child?>(value: c, child: Text(c.name)),
-                  ),
-                ],
-                onChanged: (child) => setState(() => _selectedChild = child),
-              ),
-            ],
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(labelText: l10n.amountLabel),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return l10n.requiredField;
-                final parsed = double.tryParse(v.replaceAll(',', '.'));
-                if (parsed == null || parsed <= 0) return l10n.invalidAmount;
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _noteController,
-              decoration: InputDecoration(labelText: l10n.noteLabel),
-            ),
-            const SizedBox(height: 12),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(_paid ? l10n.paid : l10n.unpaid),
-              value: _paid,
-              onChanged: (v) => setState(() => _paid = v),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(l10n.cancel),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: widget.drivers.isEmpty ? null : _save,
-                  child: Text(l10n.save),
+              const SizedBox(height: 4),
+              Text(dateStr, style: Theme.of(context).textTheme.bodyMedium),
+              if (widget.isExcludedDay) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.extraServiceHint,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
-            ),
-          ],
+              const SizedBox(height: 16),
+              DropdownButtonFormField<Driver>(
+                initialValue: _selectedDriver,
+                decoration: InputDecoration(labelText: l10n.driverLabel),
+                items: widget.drivers
+                    .map((d) => DropdownMenuItem(value: d, child: Text(d.name)))
+                    .toList(),
+                onChanged: _onDriverChanged,
+                validator: (v) => v == null ? l10n.requiredField : null,
+              ),
+              if (widget.children.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                DropdownButtonFormField<Child?>(
+                  initialValue: _selectedChild,
+                  decoration: InputDecoration(labelText: l10n.childLabel),
+                  items: [
+                    DropdownMenuItem<Child?>(
+                      value: null,
+                      child: Text(l10n.noChildSelected),
+                    ),
+                    ...widget.children.map(
+                      (c) => DropdownMenuItem<Child?>(
+                        value: c,
+                        child: Text(c.name),
+                      ),
+                    ),
+                  ],
+                  onChanged: (child) => setState(() => _selectedChild = child),
+                ),
+              ],
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(labelText: l10n.amountLabel),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return l10n.requiredField;
+                  final parsed = double.tryParse(v.replaceAll(',', '.'));
+                  if (parsed == null || parsed <= 0) return l10n.invalidAmount;
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _noteController,
+                decoration: InputDecoration(labelText: l10n.noteLabel),
+              ),
+              const SizedBox(height: 12),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(_paid ? l10n.paid : l10n.unpaid),
+                value: _paid,
+                onChanged: (v) => setState(() => _paid = v),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(l10n.cancel),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: widget.drivers.isEmpty ? null : _save,
+                    child: Text(l10n.save),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

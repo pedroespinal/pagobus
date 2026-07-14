@@ -4,12 +4,13 @@ import 'package:sqflite/sqflite.dart';
 import '../models/child.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
+import '../models/service_record.dart';
 
 class DatabaseService {
   DatabaseService._internal();
   static final DatabaseService instance = DatabaseService._internal();
 
-  static const int schemaVersion = 2;
+  static const int schemaVersion = 3;
 
   Database? _db;
 
@@ -32,7 +33,8 @@ class DatabaseService {
             company TEXT,
             phone TEXT,
             defaultAmount REAL NOT NULL,
-            defaultFrequency TEXT NOT NULL
+            defaultFrequency TEXT NOT NULL,
+            serviceWeekdays TEXT
           )
         ''');
         await db.execute('''
@@ -57,7 +59,21 @@ class DatabaseService {
         ''');
         await db.execute('CREATE INDEX idx_payments_date ON payments (date)');
         await db.execute(
-            'CREATE INDEX idx_payments_driver ON payments (driverId)');
+          'CREATE INDEX idx_payments_driver ON payments (driverId)',
+        );
+        await db.execute('''
+          CREATE TABLE service_records (
+            id TEXT PRIMARY KEY,
+            driverId TEXT NOT NULL,
+            date TEXT NOT NULL,
+            received INTEGER NOT NULL,
+            reason TEXT,
+            FOREIGN KEY (driverId) REFERENCES drivers (id) ON DELETE CASCADE
+          )
+        ''');
+        await db.execute(
+          'CREATE INDEX idx_service_records_driver_date ON service_records (driverId, date)',
+        );
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -68,6 +84,24 @@ class DatabaseService {
             )
           ''');
           await db.execute('ALTER TABLE payments ADD COLUMN childId TEXT');
+        }
+        if (oldVersion < 3) {
+          await db.execute(
+            'ALTER TABLE drivers ADD COLUMN serviceWeekdays TEXT',
+          );
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS service_records (
+              id TEXT PRIMARY KEY,
+              driverId TEXT NOT NULL,
+              date TEXT NOT NULL,
+              received INTEGER NOT NULL,
+              reason TEXT,
+              FOREIGN KEY (driverId) REFERENCES drivers (id) ON DELETE CASCADE
+            )
+          ''');
+          await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_service_records_driver_date ON service_records (driverId, date)',
+          );
         }
       },
       onConfigure: (db) async {
@@ -96,6 +130,11 @@ class DatabaseService {
   Future<void> deleteDriver(String driverId) async {
     final db = await database;
     await db.delete('payments', where: 'driverId = ?', whereArgs: [driverId]);
+    await db.delete(
+      'service_records',
+      where: 'driverId = ?',
+      whereArgs: [driverId],
+    );
     await db.delete('drivers', where: 'id = ?', whereArgs: [driverId]);
   }
 
@@ -144,8 +183,7 @@ class DatabaseService {
     return rows.map(Payment.fromMap).toList();
   }
 
-  Future<List<Payment>> getPaymentsInRange(
-      DateTime start, DateTime end) async {
+  Future<List<Payment>> getPaymentsInRange(DateTime start, DateTime end) async {
     final db = await database;
     final rows = await db.query(
       'payments',
@@ -175,16 +213,72 @@ class DatabaseService {
     await db.delete('payments', where: 'id = ?', whereArgs: [paymentId]);
   }
 
-  /// Wipes all app data and replaces it with the given drivers/children/payments.
-  /// Used by data import/restore.
+  // --- Service records (attendance) ---
+
+  Future<List<ServiceRecord>> getServiceRecordsForDriver(
+    String driverId,
+  ) async {
+    final db = await database;
+    final rows = await db.query(
+      'service_records',
+      where: 'driverId = ?',
+      whereArgs: [driverId],
+      orderBy: 'date DESC',
+    );
+    return rows.map(ServiceRecord.fromMap).toList();
+  }
+
+  Future<List<ServiceRecord>> getServiceRecordsInRange(
+    String driverId,
+    DateTime start,
+    DateTime end,
+  ) async {
+    final db = await database;
+    final rows = await db.query(
+      'service_records',
+      where: 'driverId = ? AND date BETWEEN ? AND ?',
+      whereArgs: [
+        driverId,
+        ServiceRecord.dateKey(start),
+        ServiceRecord.dateKey(end),
+      ],
+      orderBy: 'date ASC',
+    );
+    return rows.map(ServiceRecord.fromMap).toList();
+  }
+
+  Future<List<ServiceRecord>> getAllServiceRecords() async {
+    final db = await database;
+    final rows = await db.query('service_records', orderBy: 'date DESC');
+    return rows.map(ServiceRecord.fromMap).toList();
+  }
+
+  Future<void> upsertServiceRecord(ServiceRecord record) async {
+    final db = await database;
+    await db.insert(
+      'service_records',
+      record.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteServiceRecord(String id) async {
+    final db = await database;
+    await db.delete('service_records', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Wipes all app data and replaces it with the given data. Used by data
+  /// import/restore.
   Future<void> replaceAllData({
     required List<Driver> drivers,
     required List<Child> children,
     required List<Payment> payments,
+    List<ServiceRecord> serviceRecords = const [],
   }) async {
     final db = await database;
     await db.transaction((txn) async {
       await txn.delete('payments');
+      await txn.delete('service_records');
       await txn.delete('children');
       await txn.delete('drivers');
       for (final driver in drivers) {
@@ -195,6 +289,9 @@ class DatabaseService {
       }
       for (final payment in payments) {
         await txn.insert('payments', payment.toMap());
+      }
+      for (final record in serviceRecords) {
+        await txn.insert('service_records', record.toMap());
       }
     });
   }

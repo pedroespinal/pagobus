@@ -135,5 +135,33 @@
   "reportsTitle": "Reportes",
   "totalByDriver": "Total por chofer",
   "monthlyTrend": "Tendencia mensual",
-  "noDataForReports": "No hay datos para mostrar todavia"
+  "noDataForReports": "No hay datos para mostrar todavia",
+
+  "serviceWeekdaysLabel": "Dias de servicio",
+  "serviceWeekdaysHint": "Dias de la semana en que el chofer normalmente presta el servicio",
+  "weekdayMonShort": "L",
+  "weekdayTueShort": "M",
+  "weekdayWedShort": "M",
+  "weekdayThuShort": "J",
+  "weekdayFriShort": "V",
+  "weekdaySatShort": "S",
+  "weekdaySunShort": "D",
+  "selectAtLeastOneDay": "Selecciona al menos un dia",
+
+  "paymentsTabLabel": "Pagos",
+  "attendanceLabel": "Asistencia",
+  "attendanceMonthSummary": "Recibido {received} de {total} dias",
+  "@attendanceMonthSummary": {
+    "placeholders": {
+      "received": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "received": "Recibido",
+  "notReceived": "No recibido",
+  "reasonLabel": "Motivo",
+  "reasonHint": "¿Por que no se recibio el servicio?",
+  "reasonRequired": "Ingresa un motivo",
+  "noAttendanceRecords": "No hay dias de servicio este mes",
+  "generateAttendance": "Generar asistencia del mes"
 }

@@ -27,7 +27,9 @@ class NotificationService {
       // Fall back to UTC if the platform timezone lookup fails.
     }
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings();
     await _plugin.initialize(
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
@@ -36,16 +38,23 @@ class NotificationService {
   }
 
   Future<bool> requestPermission() async {
-    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (androidPlugin != null) {
       final granted = await androidPlugin.requestNotificationsPermission();
       return granted ?? false;
     }
-    final iosPlugin = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
+    final iosPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (iosPlugin != null) {
-      final granted = await iosPlugin.requestPermissions(alert: true, sound: true);
+      final granted = await iosPlugin.requestPermissions(
+        alert: true,
+        sound: true,
+      );
       return granted ?? false;
     }
     return true;
@@ -79,7 +88,8 @@ class NotificationService {
         android: AndroidNotificationDetails(
           'daily_reminder',
           'Recordatorio diario',
-          channelDescription: 'Recordatorio diario para revisar pagos de PagoBus',
+          channelDescription:
+              'Recordatorio diario para revisar pagos de PagoBus',
           importance: Importance.defaultImportance,
         ),
         iOS: DarwinNotificationDetails(),

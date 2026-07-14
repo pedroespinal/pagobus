@@ -8,18 +8,21 @@ import 'package:share_plus/share_plus.dart';
 import '../models/child.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
+import '../models/service_record.dart';
 import 'database_service.dart';
 
-/// Exports/imports the full local database (drivers, children, payments) as
-/// a single JSON file, so the user can back it up or move it to a new phone.
+/// Exports/imports the full local database (drivers, children, payments,
+/// attendance) as a single JSON file, so the user can back it up or move it
+/// to a new phone.
 class BackupService {
-  static const int _formatVersion = 1;
+  static const int _formatVersion = 2;
 
   static Future<void> exportAndShare() async {
     final db = DatabaseService.instance;
     final drivers = await db.getDrivers();
     final children = await db.getChildren();
     final payments = await db.getAllPayments();
+    final serviceRecords = await db.getAllServiceRecords();
 
     final data = {
       'formatVersion': _formatVersion,
@@ -27,6 +30,7 @@ class BackupService {
       'drivers': drivers.map((d) => d.toMap()).toList(),
       'children': children.map((c) => c.toMap()).toList(),
       'payments': payments.map((p) => p.toMap()).toList(),
+      'serviceRecords': serviceRecords.map((r) => r.toMap()).toList(),
     };
 
     final dir = await getTemporaryDirectory();
@@ -60,11 +64,15 @@ class BackupService {
     final payments = (data['payments'] as List<dynamic>)
         .map((m) => Payment.fromMap(Map<String, Object?>.from(m as Map)))
         .toList();
+    final serviceRecords = (data['serviceRecords'] as List<dynamic>? ?? [])
+        .map((m) => ServiceRecord.fromMap(Map<String, Object?>.from(m as Map)))
+        .toList();
 
     await DatabaseService.instance.replaceAllData(
       drivers: drivers,
       children: children,
       payments: payments,
+      serviceRecords: serviceRecords,
     );
     return true;
   }

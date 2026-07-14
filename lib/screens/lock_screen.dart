@@ -26,9 +26,12 @@ class _LockScreenState extends State<LockScreen> {
 
   Future<void> _init() async {
     final biometricEnabled = await AuthService.instance.isBiometricEnabled();
-    final biometricAvailable = await AuthService.instance.isBiometricAvailable();
+    final biometricAvailable = await AuthService.instance
+        .isBiometricAvailable();
     if (mounted) {
-      setState(() => _biometricAvailable = biometricEnabled && biometricAvailable);
+      setState(
+        () => _biometricAvailable = biometricEnabled && biometricAvailable,
+      );
     }
     if (_biometricAvailable) {
       _tryBiometric();
@@ -37,7 +40,9 @@ class _LockScreenState extends State<LockScreen> {
 
   Future<void> _tryBiometric() async {
     final l10n = AppLocalizations.of(context)!;
-    final ok = await AuthService.instance.authenticateWithBiometrics(l10n.unlockPagoBus);
+    final ok = await AuthService.instance.authenticateWithBiometrics(
+      l10n.unlockPagoBus,
+    );
     if (ok && mounted) widget.onUnlocked();
   }
 
@@ -71,11 +76,16 @@ class _LockScreenState extends State<LockScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.directions_bus_filled,
-                    size: 64, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.directions_bus_filled,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(height: 16),
-                Text(l10n.unlockPagoBus,
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  l10n.unlockPagoBus,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 24),
                 TextField(
                   controller: _pinController,
@@ -93,10 +103,7 @@ class _LockScreenState extends State<LockScreen> {
                   onSubmitted: (_) => _submitPin(),
                 ),
                 const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: _submitPin,
-                  child: Text(l10n.unlock),
-                ),
+                FilledButton(onPressed: _submitPin, child: Text(l10n.unlock)),
                 if (_biometricAvailable) ...[
                   const SizedBox(height: 12),
                   TextButton.icon(

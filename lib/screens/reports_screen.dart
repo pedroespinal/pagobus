@@ -80,7 +80,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
     final totalsByDriver = <String, double>{};
     for (final p in _monthPayments) {
-      totalsByDriver.update(p.driverId, (v) => v + p.amount, ifAbsent: () => p.amount);
+      totalsByDriver.update(
+        p.driverId,
+        (v) => v + p.amount,
+        ifAbsent: () => p.amount,
+      );
     }
     final driverEntries = totalsByDriver.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -88,7 +92,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.reportsTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          24 + MediaQuery.of(context).padding.bottom,
+        ),
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -117,13 +126,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(l10n.totalPaid,
-                            style: Theme.of(context).textTheme.labelLarge),
+                        Text(
+                          l10n.totalPaid,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
                         Text(
                           formatAmount(totalPaid, currencyCode),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
+                          style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(color: Colors.green),
                         ),
                       ],
@@ -139,13 +148,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(l10n.totalPending,
-                            style: Theme.of(context).textTheme.labelLarge),
+                        Text(
+                          l10n.totalPending,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
                         Text(
                           formatAmount(totalPending, currencyCode),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
+                          style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(color: Colors.orange),
                         ),
                       ],
@@ -162,16 +171,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
               child: Center(child: Text(l10n.noDataForReports)),
             )
           else ...[
-            Text(l10n.totalByDriver, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.totalByDriver,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             SizedBox(
               height: 220,
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: (driverEntries.isEmpty
+                  maxY:
+                      (driverEntries.isEmpty
                           ? 1
-                          : driverEntries.map((e) => e.value).reduce((a, b) => a > b ? a : b)) *
+                          : driverEntries
+                                .map((e) => e.value)
+                                .reduce((a, b) => a > b ? a : b)) *
                       1.2,
                   barTouchData: BarTouchData(enabled: false),
                   titlesData: FlTitlesData(
@@ -196,7 +211,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
-                              name.length > 8 ? '${name.substring(0, 8)}…' : name,
+                              name.length > 8
+                                  ? '${name.substring(0, 8)}…'
+                                  : name,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           );
@@ -224,16 +241,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            Text(l10n.monthlyTrend, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.monthlyTrend,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             SizedBox(
               height: 220,
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: (_last6MonthsTotals.isEmpty
+                  maxY:
+                      (_last6MonthsTotals.isEmpty
                           ? 1
-                          : _last6MonthsTotals.reduce((a, b) => a > b ? a : b)) *
+                          : _last6MonthsTotals.reduce(
+                              (a, b) => a > b ? a : b,
+                            )) *
                       1.2,
                   barTouchData: BarTouchData(enabled: false),
                   titlesData: FlTitlesData(
@@ -251,8 +274,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
-                          if (index < 0 || index >= 6) return const SizedBox.shrink();
-                          final m = DateTime(_month.year, _month.month - (5 - index), 1);
+                          if (index < 0 || index >= 6) {
+                            return const SizedBox.shrink();
+                          }
+                          final m = DateTime(
+                            _month.year,
+                            _month.month - (5 - index),
+                            1,
+                          );
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
