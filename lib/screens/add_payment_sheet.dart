@@ -7,6 +7,7 @@ import '../models/child.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
 import '../services/database_service.dart';
+import '../services/recurring_payment_service.dart';
 
 const _uuid = Uuid();
 
@@ -65,6 +66,19 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
         text: _selectedDriver?.defaultAmount.toStringAsFixed(2) ?? '',
       );
       _noteController = TextEditingController();
+      _recalculateAmount(_selectedDriver);
+    }
+  }
+
+  /// For weekly/monthly drivers, `defaultAmount` is the whole period's
+  /// total, not a single day's charge — so a single calendar day must be
+  /// pre-filled with its share of that total (e.g. the month's 6000 split
+  /// across its ~20 service days), not the full period amount.
+  Future<void> _recalculateAmount(Driver? driver) async {
+    if (driver == null) return;
+    final amount = await RecurringPaymentService.dailyRate(driver, widget.date);
+    if (mounted) {
+      setState(() => _amountController.text = amount.toStringAsFixed(2));
     }
   }
 
@@ -76,12 +90,10 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
   }
 
   void _onDriverChanged(Driver? driver) {
-    setState(() {
-      _selectedDriver = driver;
-      if (widget.existing == null && driver != null) {
-        _amountController.text = driver.defaultAmount.toStringAsFixed(2);
-      }
-    });
+    setState(() => _selectedDriver = driver);
+    if (widget.existing == null) {
+      _recalculateAmount(driver);
+    }
   }
 
   Future<void> _save() async {
