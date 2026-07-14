@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/child.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
 import '../services/database_service.dart';
@@ -19,6 +20,7 @@ class ReportsScreen extends StatefulWidget {
 class _ReportsScreenState extends State<ReportsScreen> {
   DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
   List<Driver> _drivers = [];
+  List<Child> _children = [];
   List<Payment> _monthPayments = [];
   List<double> _last6MonthsTotals = [];
 
@@ -31,6 +33,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<void> _load() async {
     final db = DatabaseService.instance;
     final drivers = await db.getDrivers();
+    final children = await db.getChildren();
     final monthStart = DateTime(_month.year, _month.month, 1);
     final monthEnd = DateTime(_month.year, _month.month + 1, 0);
     final monthPayments = await db.getPaymentsInRange(monthStart, monthEnd);
@@ -47,6 +50,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     if (mounted) {
       setState(() {
         _drivers = drivers;
+        _children = children;
         _monthPayments = monthPayments;
         _last6MonthsTotals = trend;
       });
@@ -60,6 +64,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   String _driverName(String driverId) {
     final match = _drivers.where((d) => d.id == driverId);
+    return match.isEmpty ? '?' : match.first.name;
+  }
+
+  String _childName(String childId) {
+    final match = _children.where((c) => c.id == childId);
     return match.isEmpty ? '?' : match.first.name;
   }
 
@@ -87,6 +96,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
       );
     }
     final driverEntries = totalsByDriver.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final totalsByChild = <String, double>{};
+    for (final p in _monthPayments) {
+      final childId = p.childId;
+      if (childId == null) continue;
+      totalsByChild.update(
+        childId,
+        (v) => v + p.amount,
+        ifAbsent: () => p.amount,
+      );
+    }
+    final childEntries = totalsByChild.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
@@ -176,70 +198,24 @@ class _ReportsScreenState extends State<ReportsScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 220,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY:
-                      (driverEntries.isEmpty
-                          ? 1
-                          : driverEntries
-                                .map((e) => e.value)
-                                .reduce((a, b) => a > b ? a : b)) *
-                      1.2,
-                  barTouchData: BarTouchData(enabled: false),
-                  titlesData: FlTitlesData(
-                    leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final index = value.toInt();
-                          if (index < 0 || index >= driverEntries.length) {
-                            return const SizedBox.shrink();
-                          }
-                          final name = _driverName(driverEntries[index].key);
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              name.length > 8
-                                  ? '${name.substring(0, 8)}…'
-                                  : name,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  gridData: const FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
-                  barGroups: [
-                    for (var i = 0; i < driverEntries.length; i++)
-                      BarChartGroupData(
-                        x: i,
-                        barRods: [
-                          BarChartRodData(
-                            toY: driverEntries[i].value,
-                            color: scheme.primary,
-                            width: 24,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
+            _EntryBarChart(
+              entries: driverEntries,
+              labelFor: _driverName,
+              color: scheme.primary,
             ),
+            if (childEntries.isNotEmpty) ...[
+              const SizedBox(height: 32),
+              Text(
+                l10n.totalByChild,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              _EntryBarChart(
+                entries: childEntries,
+                labelFor: _childName,
+                color: scheme.tertiary,
+              ),
+            ],
             const SizedBox(height: 32),
             Text(
               l10n.monthlyTrend,
@@ -314,6 +290,85 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Bar chart for a list of (id, total) entries, labeling each bar via
+/// [labelFor]. Used for both the "total by driver" and "total by child"
+/// breakdowns, which are structurally identical.
+class _EntryBarChart extends StatelessWidget {
+  final List<MapEntry<String, double>> entries;
+  final String Function(String id) labelFor;
+  final Color color;
+
+  const _EntryBarChart({
+    required this.entries,
+    required this.labelFor,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = entries.isEmpty
+        ? 1.0
+        : entries.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+
+    return SizedBox(
+      height: 220,
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: maxValue * 1.2,
+          barTouchData: BarTouchData(enabled: false),
+          titlesData: FlTitlesData(
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index < 0 || index >= entries.length) {
+                    return const SizedBox.shrink();
+                  }
+                  final name = labelFor(entries[index].key);
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      name.length > 8 ? '${name.substring(0, 8)}…' : name,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          gridData: const FlGridData(show: false),
+          borderData: FlBorderData(show: false),
+          barGroups: [
+            for (var i = 0; i < entries.length; i++)
+              BarChartGroupData(
+                x: i,
+                barRods: [
+                  BarChartRodData(
+                    toY: entries[i].value,
+                    color: color,
+                    width: 24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

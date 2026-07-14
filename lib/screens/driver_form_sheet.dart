@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/child.dart';
 import '../models/driver.dart';
 import '../services/database_service.dart';
 import '../widgets/weekday_selector.dart';
@@ -10,8 +11,9 @@ const _uuid = Uuid();
 
 class DriverFormSheet extends StatefulWidget {
   final Driver? existing;
+  final List<Child> children;
 
-  const DriverFormSheet({super.key, this.existing});
+  const DriverFormSheet({super.key, this.existing, this.children = const []});
 
   @override
   State<DriverFormSheet> createState() => _DriverFormSheetState();
@@ -26,6 +28,7 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
   late final TextEditingController _standardDaysController;
   late PaymentFrequency _frequency;
   late Set<int> _serviceWeekdays;
+  late Set<String> _assignedChildIds;
   bool _showWeekdayError = false;
 
   @override
@@ -46,6 +49,7 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
       text: (existing?.standardDaysPerMonth ?? defaultStandardDaysPerMonth)
           .toString(),
     );
+    _assignedChildIds = Set<String>.from(existing?.assignedChildIds ?? {});
   }
 
   @override
@@ -79,6 +83,7 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
       standardDaysPerMonth:
           int.tryParse(_standardDaysController.text) ??
           defaultStandardDaysPerMonth,
+      assignedChildIds: _assignedChildIds,
     );
     await DatabaseService.instance.upsertDriver(driver);
     if (mounted) Navigator.of(context).pop(true);
@@ -210,6 +215,36 @@ class _DriverFormSheetState extends State<DriverFormSheet> {
                     ),
                   ),
                 ),
+              if (widget.children.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  l10n.assignedChildrenLabel,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.assignedChildrenHint,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: widget.children.map((child) {
+                    final isSelected = _assignedChildIds.contains(child.id);
+                    return FilterChip(
+                      label: Text(child.name),
+                      selected: isSelected,
+                      onSelected: (value) => setState(() {
+                        if (value) {
+                          _assignedChildIds.add(child.id);
+                        } else {
+                          _assignedChildIds.remove(child.id);
+                        }
+                      }),
+                    );
+                  }).toList(),
+                ),
+              ],
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,

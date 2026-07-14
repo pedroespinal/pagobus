@@ -15,6 +15,7 @@ import '../services/update_service.dart';
 import '../utils/currency_formatter.dart';
 import '../widgets/pin_dialog.dart';
 import '../widgets/update_dialog.dart';
+import 'child_detail_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -427,6 +428,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         dense: true,
                         leading: const Icon(Icons.face_outlined),
                         title: Text(child.name),
+                        onTap: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChildDetailScreen(child: child),
+                            ),
+                          );
+                        },
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () => _removeChild(child),
@@ -447,7 +456,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onChanged: _toggleBiometric,
                       ),
                     const Divider(),
-                    ListTile(title: Text(l10n.reminderLabel)),
+                    ListTile(title: Text(l10n.notificationsSectionLabel)),
                     SwitchListTile(
                       title: Text(l10n.reminderLabel),
                       value: _settings.reminderEnabled,

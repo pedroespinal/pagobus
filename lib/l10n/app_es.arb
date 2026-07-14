@@ -91,6 +91,10 @@
   "addChild": "Agregar nino",
   "editChild": "Editar nino",
   "confirmDeleteChild": "¿Eliminar este nino? Los pagos asociados quedaran sin nino asignado.",
+  "assignedChildrenLabel": "Ninos asignados",
+  "assignedChildrenHint": "Si asignas ninos especificos, solo ellos apareceran al agregar un pago para este chofer. Si no asignas ninguno, podras elegir cualquier nino.",
+  "totalByChild": "Total por nino",
+  "noPaymentsForChild": "Sin pagos registrados para este nino",
 
   "generatePayments": "Generar pagos del mes",
   "generatePaymentsConfirmTitle": "Generar pagos del mes",
@@ -120,6 +124,7 @@
   "unlockPagoBus": "Desbloquea PagoBus",
   "useBiometric": "Usar huella o rostro",
 
+  "notificationsSectionLabel": "Notificaciones",
   "reminderLabel": "Recordatorio diario",
   "reminderTimeLabel": "Hora del recordatorio",
   "reminderNotificationTitle": "PagoBus",

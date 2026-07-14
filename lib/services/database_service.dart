@@ -10,7 +10,7 @@ class DatabaseService {
   DatabaseService._internal();
   static final DatabaseService instance = DatabaseService._internal();
 
-  static const int schemaVersion = 4;
+  static const int schemaVersion = 5;
 
   Database? _db;
 
@@ -35,7 +35,8 @@ class DatabaseService {
             defaultAmount REAL NOT NULL,
             defaultFrequency TEXT NOT NULL,
             serviceWeekdays TEXT,
-            standardDaysPerMonth INTEGER
+            standardDaysPerMonth INTEGER,
+            assignedChildIds TEXT
           )
         ''');
         await db.execute('''
@@ -109,6 +110,11 @@ class DatabaseService {
             'ALTER TABLE drivers ADD COLUMN standardDaysPerMonth INTEGER',
           );
         }
+        if (oldVersion < 5) {
+          await db.execute(
+            'ALTER TABLE drivers ADD COLUMN assignedChildIds TEXT',
+          );
+        }
       },
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
@@ -174,6 +180,17 @@ class DatabaseService {
       'payments',
       where: 'driverId = ?',
       whereArgs: [driverId],
+      orderBy: 'date DESC',
+    );
+    return rows.map(Payment.fromMap).toList();
+  }
+
+  Future<List<Payment>> getPaymentsForChild(String childId) async {
+    final db = await database;
+    final rows = await db.query(
+      'payments',
+      where: 'childId = ?',
+      whereArgs: [childId],
       orderBy: 'date DESC',
     );
     return rows.map(Payment.fromMap).toList();

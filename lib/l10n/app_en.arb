@@ -91,6 +91,10 @@
   "addChild": "Add child",
   "editChild": "Edit child",
   "confirmDeleteChild": "Delete this child? Associated payments will be left unassigned.",
+  "assignedChildrenLabel": "Assigned children",
+  "assignedChildrenHint": "If you assign specific children, only they will show up when adding a payment for this driver. If you don't assign any, any child can be picked.",
+  "totalByChild": "Total by child",
+  "noPaymentsForChild": "No payments recorded for this child",
 
   "generatePayments": "Generate this month's payments",
   "generatePaymentsConfirmTitle": "Generate this month's payments",
@@ -120,6 +124,7 @@
   "unlockPagoBus": "Unlock PagoBus",
   "useBiometric": "Use fingerprint/face",
 
+  "notificationsSectionLabel": "Notifications",
   "reminderLabel": "Daily reminder",
   "reminderTimeLabel": "Reminder time",
   "reminderNotificationTitle": "PagoBus",

@@ -71,7 +71,37 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
               ).toStringAsFixed(2),
       );
       _noteController = TextEditingController();
+      _selectedChild = _soleAssignedChild(_selectedDriver);
     }
+  }
+
+  /// If [driver] has exactly one assigned child, that's almost certainly who
+  /// this payment is for — pre-select it so the user doesn't have to.
+  Child? _soleAssignedChild(Driver? driver) {
+    if (driver == null || driver.assignedChildIds.length != 1) return null;
+    return widget.children
+        .where((c) => driver.assignedChildIds.contains(c.id))
+        .cast<Child?>()
+        .firstOrNull;
+  }
+
+  /// Children selectable for [driver]: narrowed to its assigned children if
+  /// it has any, otherwise every child. Always keeps the currently selected
+  /// child in the list even if it falls outside that set (e.g. the driver's
+  /// assignments changed after this payment was tagged), so the dropdown's
+  /// value never points at a missing item.
+  List<Child> _childrenForDriver(Driver? driver) {
+    if (driver == null || driver.assignedChildIds.isEmpty) {
+      return widget.children;
+    }
+    final filtered = widget.children
+        .where((c) => driver.assignedChildIds.contains(c.id))
+        .toList();
+    final selected = _selectedChild;
+    if (selected != null && !filtered.any((c) => c.id == selected.id)) {
+      filtered.add(selected);
+    }
+    return filtered;
   }
 
   @override
@@ -89,6 +119,11 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
           driver,
           widget.date,
         ).toStringAsFixed(2);
+        if (driver.assignedChildIds.isEmpty) {
+          // No restriction for this driver — leave whatever was picked.
+        } else if (!driver.assignedChildIds.contains(_selectedChild?.id)) {
+          _selectedChild = _soleAssignedChild(driver);
+        }
       }
     });
   }
@@ -162,6 +197,7 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
               if (widget.children.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 DropdownButtonFormField<Child?>(
+                  key: ValueKey(_selectedDriver?.id),
                   initialValue: _selectedChild,
                   decoration: InputDecoration(labelText: l10n.childLabel),
                   items: [
@@ -169,7 +205,7 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
                       value: null,
                       child: Text(l10n.noChildSelected),
                     ),
-                    ...widget.children.map(
+                    ..._childrenForDriver(_selectedDriver).map(
                       (c) => DropdownMenuItem<Child?>(
                         value: c,
                         child: Text(c.name),

@@ -40,6 +40,12 @@ class Driver {
   final Set<int> serviceWeekdays;
   final int standardDaysPerMonth;
 
+  /// Children this driver normally carries. Empty means "no restriction" —
+  /// any child in the system can be picked when logging a payment for this
+  /// driver. Non-empty narrows the child dropdown to just these children and
+  /// auto-selects the child when there's exactly one.
+  final Set<String> assignedChildIds;
+
   const Driver({
     required this.id,
     required this.name,
@@ -49,6 +55,7 @@ class Driver {
     required this.defaultFrequency,
     this.serviceWeekdays = defaultServiceWeekdays,
     this.standardDaysPerMonth = defaultStandardDaysPerMonth,
+    this.assignedChildIds = const {},
   });
 
   Driver copyWith({
@@ -59,6 +66,7 @@ class Driver {
     PaymentFrequency? defaultFrequency,
     Set<int>? serviceWeekdays,
     int? standardDaysPerMonth,
+    Set<String>? assignedChildIds,
   }) {
     return Driver(
       id: id,
@@ -69,6 +77,7 @@ class Driver {
       defaultFrequency: defaultFrequency ?? this.defaultFrequency,
       serviceWeekdays: serviceWeekdays ?? this.serviceWeekdays,
       standardDaysPerMonth: standardDaysPerMonth ?? this.standardDaysPerMonth,
+      assignedChildIds: assignedChildIds ?? this.assignedChildIds,
     );
   }
 
@@ -82,6 +91,7 @@ class Driver {
       'defaultFrequency': defaultFrequency.storageValue,
       'serviceWeekdays': (serviceWeekdays.toList()..sort()).join(','),
       'standardDaysPerMonth': standardDaysPerMonth,
+      'assignedChildIds': assignedChildIds.join(','),
     };
   }
 
@@ -90,6 +100,10 @@ class Driver {
     final weekdays = (weekdaysRaw == null || weekdaysRaw.isEmpty)
         ? defaultServiceWeekdays
         : weekdaysRaw.split(',').map(int.parse).toSet();
+    final childIdsRaw = map['assignedChildIds'] as String?;
+    final childIds = (childIdsRaw == null || childIdsRaw.isEmpty)
+        ? const <String>{}
+        : childIdsRaw.split(',').toSet();
     return Driver(
       id: map['id'] as String,
       name: map['name'] as String,
@@ -103,6 +117,7 @@ class Driver {
       standardDaysPerMonth:
           (map['standardDaysPerMonth'] as num?)?.toInt() ??
           defaultStandardDaysPerMonth,
+      assignedChildIds: childIds,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/child.dart';
 import '../models/driver.dart';
 import '../services/database_service.dart';
 import 'driver_detail_screen.dart';
@@ -15,6 +16,7 @@ class DriverListScreen extends StatefulWidget {
 
 class _DriverListScreenState extends State<DriverListScreen> {
   List<Driver> _drivers = [];
+  List<Child> _children = [];
 
   @override
   void initState() {
@@ -24,14 +26,21 @@ class _DriverListScreenState extends State<DriverListScreen> {
 
   Future<void> _load() async {
     final drivers = await DatabaseService.instance.getDrivers();
-    if (mounted) setState(() => _drivers = drivers);
+    final children = await DatabaseService.instance.getChildren();
+    if (mounted) {
+      setState(() {
+        _drivers = drivers;
+        _children = children;
+      });
+    }
   }
 
   Future<void> _openForm({Driver? existing}) async {
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => DriverFormSheet(existing: existing),
+      builder: (context) =>
+          DriverFormSheet(existing: existing, children: _children),
     );
     if (saved == true) _load();
   }
