@@ -3,7 +3,7 @@ description: "PagoBus - Control de pagos de transporte escolar"
 publish_to: 'none'
 
 # El numero de version se incrementa en cada release (ver .github/workflows/release.yml)
-version: 1.0.7+8
+version: 1.0.8+9
 
 environment:
   sdk: ^3.11.5
