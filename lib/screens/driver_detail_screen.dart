@@ -5,7 +5,6 @@ import '../l10n/app_localizations.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
 import '../models/service_record.dart';
-import '../services/attendance_service.dart';
 import '../services/database_service.dart';
 import '../services/recurring_payment_service.dart';
 import '../services/settings_service.dart';
@@ -55,12 +54,6 @@ class _DriverDetailScreenState extends State<DriverDetailScreen>
   }
 
   Future<void> _loadAttendance() async {
-    // Auto-generate this month's expected service days (defaulting to
-    // "received") so the user only has to flip the ones that were missed.
-    await AttendanceService.ensureRecordsForMonth(
-      widget.driver,
-      _attendanceMonth,
-    );
     final records = await DatabaseService.instance.getServiceRecordsInRange(
       widget.driver.id,
       DateTime(_attendanceMonth.year, _attendanceMonth.month, 1),
@@ -108,7 +101,18 @@ class _DriverDetailScreenState extends State<DriverDetailScreen>
     );
     if (confirm == true) {
       await DatabaseService.instance.deletePayment(payment.id);
+      // If no other payment covers this driver/day, the attendance entry
+      // this payment implied ("received") no longer has a basis either.
+      final samedayPayments = await DatabaseService.instance
+          .getPaymentsForDate(payment.date);
+      if (!samedayPayments.any((p) => p.driverId == payment.driverId)) {
+        await DatabaseService.instance.deleteServiceRecordForDriverDate(
+          payment.driverId,
+          payment.date,
+        );
+      }
       _loadPayments();
+      _loadAttendance();
     }
   }
 

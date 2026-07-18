@@ -1,10 +1,13 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/child.dart';
 import '../models/driver.dart';
 import '../models/payment.dart';
 import '../models/service_record.dart';
+
+const _uuid = Uuid();
 
 class DatabaseService {
   DatabaseService._internal();
@@ -299,6 +302,45 @@ class DatabaseService {
   Future<void> deleteServiceRecord(String id) async {
     final db = await database;
     await db.delete('service_records', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Creates or updates the single attendance entry for [driverId] on
+  /// [date], keeping it 1:1 with that day so calendar actions (adding a
+  /// payment, marking a day serviceless) directly drive what Asistencia
+  /// shows instead of it being auto-filled independently.
+  Future<void> setServiceRecordForDriverDate(
+    String driverId,
+    DateTime date, {
+    required bool received,
+    String? reason,
+  }) async {
+    final db = await database;
+    final existing = await db.query(
+      'service_records',
+      where: 'driverId = ? AND date = ?',
+      whereArgs: [driverId, ServiceRecord.dateKey(date)],
+    );
+    await upsertServiceRecord(
+      ServiceRecord(
+        id: existing.isNotEmpty ? existing.first['id'] as String : _uuid.v4(),
+        driverId: driverId,
+        date: date,
+        received: received,
+        reason: received ? null : reason,
+      ),
+    );
+  }
+
+  Future<void> deleteServiceRecordForDriverDate(
+    String driverId,
+    DateTime date,
+  ) async {
+    final db = await database;
+    await db.delete(
+      'service_records',
+      where: 'driverId = ? AND date = ?',
+      whereArgs: [driverId, ServiceRecord.dateKey(date)],
+    );
   }
 
   /// Wipes all app data and replaces it with the given data. Used by data

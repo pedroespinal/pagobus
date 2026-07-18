@@ -144,6 +144,12 @@ class _AddPaymentSheetState extends State<AddPaymentSheet> {
       childId: _selectedChild?.id,
     );
     await DatabaseService.instance.upsertPayment(payment);
+    // Logging a payment for this driver/day means service was received.
+    await DatabaseService.instance.setServiceRecordForDriverDate(
+      _selectedDriver!.id,
+      widget.date,
+      received: true,
+    );
     if (mounted) Navigator.of(context).pop(true);
   }
 

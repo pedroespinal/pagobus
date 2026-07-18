@@ -170,5 +170,7 @@
   "reasonHint": "¿Por que no se recibio el servicio?",
   "reasonRequired": "Ingresa un motivo",
   "noAttendanceRecords": "No hay dias de servicio este mes",
-  "generateAttendance": "Generar asistencia del mes"
+  "markNoServiceTooltip": "Marcar dia sin servicio",
+  "markNoServiceTitle": "Marcar dia sin servicio",
+  "noServiceSaved": "Guardado en asistencia"
 }

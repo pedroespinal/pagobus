@@ -114,7 +114,98 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     if (confirm == true) {
       await DatabaseService.instance.deletePayment(payment.id);
+      // If no other payment covers this driver/day, the attendance entry
+      // this payment implied ("received") no longer has a basis either.
+      final samedayPayments = await DatabaseService.instance
+          .getPaymentsForDate(payment.date);
+      if (!samedayPayments.any((p) => p.driverId == payment.driverId)) {
+        await DatabaseService.instance.deleteServiceRecordForDriverDate(
+          payment.driverId,
+          payment.date,
+        );
+      }
       _loadMonth(_focusedDay);
+    }
+  }
+
+  Future<void> _markNoService() async {
+    if (_drivers.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
+    var selectedDriver = _drivers.first;
+    final reasonController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(l10n.markNoServiceTitle),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_drivers.length > 1) ...[
+                  DropdownButtonFormField<Driver>(
+                    initialValue: selectedDriver,
+                    decoration: InputDecoration(labelText: l10n.driverLabel),
+                    items: _drivers
+                        .map(
+                          (d) =>
+                              DropdownMenuItem(value: d, child: Text(d.name)),
+                        )
+                        .toList(),
+                    onChanged: (d) => setDialogState(
+                      () => selectedDriver = d ?? selectedDriver,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                TextFormField(
+                  controller: reasonController,
+                  autofocus: _drivers.length <= 1,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    labelText: l10n.reasonLabel,
+                    hintText: l10n.reasonHint,
+                  ),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? l10n.reasonRequired
+                      : null,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.of(context).pop(true);
+                }
+              },
+              child: Text(l10n.save),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed == true) {
+      await DatabaseService.instance.setServiceRecordForDriverDate(
+        selectedDriver.id,
+        _selectedDay,
+        received: false,
+        reason: reasonController.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.noServiceSaved)));
+      }
     }
   }
 
@@ -138,7 +229,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final events = _eventsForDay(_selectedDay);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.calendarTitle)),
+      appBar: AppBar(
+        title: Text(l10n.calendarTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.event_busy_outlined),
+            tooltip: l10n.markNoServiceTooltip,
+            onPressed: _drivers.isEmpty ? null : _markNoService,
+          ),
+        ],
+      ),
       body: Column(
         children: [
           TableCalendar<Payment>(

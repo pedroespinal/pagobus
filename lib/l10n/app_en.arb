@@ -170,5 +170,7 @@
   "reasonHint": "Why wasn't the service received?",
   "reasonRequired": "Enter a reason",
   "noAttendanceRecords": "No service days this month",
-  "generateAttendance": "Generate this month's attendance"
+  "markNoServiceTooltip": "Mark day without service",
+  "markNoServiceTitle": "Mark day without service",
+  "noServiceSaved": "Saved to attendance"
 }
